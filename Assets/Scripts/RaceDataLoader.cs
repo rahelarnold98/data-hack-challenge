@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 using UnityEngine;
 
 public class RaceDataLoader : MonoBehaviour
@@ -144,6 +145,51 @@ public class RaceDataLoader : MonoBehaviour
             .OrderBy(v => v.finalRank)
             .ToList();
 
+        // calculate fastest time
+        RaceCompetitorView fastestLapCompetitor = null;
+        string fastestLapNumber = "";
+        float fastestLapTime = float.MaxValue;
+
+        foreach (var c in finalA.Competitors)
+        {
+            EventCompetitor ec;
+            competitorById.TryGetValue(c.CompetitionCompetitorId, out ec);
+
+            string fullName = ec != null 
+                ? $"{ec.Competitor.Person.FirstName} {ec.Competitor.Person.LastName}"
+                : $"Bib {c.BibNumber}";
+            string country = ec != null 
+                ? ec.Competitor.StartedForNfCode 
+                : "";
+
+            if (c.Laps == null) continue;
+
+            foreach (var lap in c.Laps)
+            {
+                if (float.TryParse(lap.LapTime, NumberStyles.Float, CultureInfo.InvariantCulture, out float t))
+                {
+                    if (t < fastestLapTime)
+                    {
+                        fastestLapTime = t;
+                        fastestLapNumber = lap.LapNumber;
+
+                        fastestLapCompetitor = new RaceCompetitorView
+                        {
+                            name = fullName,
+                            country = country
+                        };
+                    }
+                }
+            }
+        }
+        
         overlayUI.ShowFinalResults(viewList);
+        
+        if (fastestLapCompetitor != null)
+        {
+            string label = $"Fastest lap: {fastestLapCompetitor.name} ({fastestLapCompetitor.country}) – Lap {fastestLapNumber} in {fastestLapTime:F3} s";
+            overlayUI.ShowFastestLap(label);
+        }
+
     }
 }

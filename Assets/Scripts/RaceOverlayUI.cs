@@ -7,6 +7,8 @@ public class RaceOverlayUI : MonoBehaviour
     [Header("UI References")]
     public TMP_Text titleText;
     public TMP_Text[] rowTexts; // assign 4 entries in Unity Inspector
+    public TMP_Text highlightText;
+
 
     public void ShowFinalResults(List<RaceCompetitorView> competitors)
     {
@@ -27,6 +29,15 @@ public class RaceOverlayUI : MonoBehaviour
             }
         }
     }
+    
+    public void ShowFastestLap(string label)
+    {
+        if (highlightText != null)
+        {
+            highlightText.text = label;
+        }
+    }
+
 }
 
 [System.Serializable]
