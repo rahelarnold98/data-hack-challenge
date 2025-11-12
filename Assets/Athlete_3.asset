@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 561bddaec9d394e789c84fc351cd6adb, type: 3}
+  m_Name: Athlete_3
+  m_EditorClassIdentifier: Assembly-CSharp::AthleteData
+  id: 3
+  displayName: Brandon Kim
+  country: USA
+  flagSprite: {fileID: 21300000, guid: b7cd94a8e688e432f85e8b96376f28f9, type: 3}
+  photo: {fileID: 21300000, guid: 561fa5f5a84f74388bab1475e93b8dff, type: 3}
+  birthYear: 2001
+  birthMonth: 8
+  birthDay: 30
+  instagramUrl: https://www.instagram.com/brandonkim._/
+  isuUrl: https://isu-skating.com/short-track/skaters/brandon-kim/
+  olympicsUrl: 

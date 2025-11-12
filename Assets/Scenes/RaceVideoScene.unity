@@ -2190,6 +2190,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RaceDataLoader
   jsonFile: {fileID: 4900000, guid: d0ac52abb57c042bebc46f229f2706f3, type: 3}
   overlayUI: {fileID: 1778972111}
+  currentLapNumber: 1
 --- !u!4 &1706747608
 Transform:
   m_ObjectHideFlags: 0
@@ -2456,13 +2457,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15fc57067ddc24bbb8a3c09b374b9bd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RaceOverlayUI
-  titleText: {fileID: 624740636}
   rowTexts:
   - {fileID: 1796466311}
   - {fileID: 161743053}
   - {fileID: 1713224389}
   - {fileID: 737981376}
   highlightText: {fileID: 0}
+  headerText: {fileID: 0}
+  titleText: {fileID: 624740636}
+  lapText: {fileID: 0}
 --- !u!1 &1796466309
 GameObject:
   m_ObjectHideFlags: 0

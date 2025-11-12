@@ -23,12 +23,12 @@ public class StoryMomentController : MonoBehaviour
     public GameObject storyPanel;
 
     // Content holder that fades
-    public RectTransform storyContent;         // assign the StoryContent object
+    public RectTransform storyContent;       
     public TMP_Text storyTitleText;
     public TMP_Text storyDescriptionText;
 
     [Header("Timing")]
-    public float fadeDuration = 0.3f;          // fade in/out speed
+    public float fadeDuration = 0.3f;          
 
     [Header("Moments")]
     public List<StoryMoment> moments = new List<StoryMoment>();
@@ -40,13 +40,13 @@ public class StoryMomentController : MonoBehaviour
     void Awake()
     {
         if (storyPanel != null)
-            storyPanel.SetActive(true);        // panel is ALWAYS active
+            storyPanel.SetActive(true);        
 
         if (storyContent != null)
         {
             contentCg = storyContent.GetComponent<CanvasGroup>();
             if (!contentCg) contentCg = storyContent.gameObject.AddComponent<CanvasGroup>();
-            contentCg.alpha = 0f;              // start hidden (content only)
+            contentCg.alpha = 0f; 
             contentCg.interactable = false;
             contentCg.blocksRaycasts = false;
         }
@@ -58,7 +58,6 @@ public class StoryMomentController : MonoBehaviour
 
         double t = videoPlayer.time;
 
-        // Fire next moment when time passes
         if (currentIndex < moments.Count)
         {
             var next = moments[currentIndex];
@@ -81,13 +80,10 @@ public class StoryMomentController : MonoBehaviour
 
     IEnumerator FadeContentMoment(float visibleSeconds)
     {
-        // Fade in
         yield return FadeTo(1f, fadeDuration);
 
-        // Hold
         yield return new WaitForSeconds(visibleSeconds);
 
-        // Fade out (panel remains visible; only content fades)
         yield return FadeTo(0f, fadeDuration);
     }
 

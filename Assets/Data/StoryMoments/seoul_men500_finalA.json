@@ -1,23 +1,23 @@
 {
   "raceId": "seoul-men500-finalA",
-  "videoOffset": 0.0,
+  "videoOffset": 40.0,
   "moments": [
     {
       "title": "Explosive Start",
-      "description": "The pack accelerates out of the first corner.",
-      "triggerTime": 5.0,
+      "description": "The five athletes start.",
+      "triggerTime": 1.0,
       "duration": 4.0
     },
     {
-      "title": "Fastest Lap",
-      "description": "Dubois skates his fastest lap here.",
+      "title": "Fall of Athletes",
+      "description": "XXX falls down.",
       "triggerTime": 6.0,
       "duration": 4.0
     },
     {
       "title": "Final Sprint to Gold",
-      "description": "Hundredths decide the podium at the line.",
-      "triggerTime": 10.0,
+      "description": "The winner....",
+      "triggerTime": 50.0,
       "duration": 5.0
     }
   ]

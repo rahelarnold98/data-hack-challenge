@@ -13,11 +13,11 @@ public class StoryMomentsFile
 public class StoryMomentJsonLoader : MonoBehaviour
 {
     [Header("JSON source")]
-    public TextAsset jsonFile;                // assign your *.json
-    public string expectedRaceId = "";        // optional: sanity check
+    public TextAsset jsonFile;
+    public string expectedRaceId = "";
 
     [Header("Target Controller")]
-    public StoryMomentController target;      // drag your StoryManager (StoryMomentController) here
+    public StoryMomentController target; 
 
     void Awake()
     {
@@ -27,9 +27,7 @@ public class StoryMomentJsonLoader : MonoBehaviour
             return;
         }
 
-        // JsonUtility requires a proper root object
         var raw = jsonFile.text.Trim();
-        // If someone provided only "moments": [...] without braces, wrap (defensive)
         if (!raw.StartsWith("{")) raw = "{ " + raw + " }";
 
         StoryMomentsFile data;
@@ -48,7 +46,6 @@ public class StoryMomentJsonLoader : MonoBehaviour
             Debug.LogWarning($"StoryMomentJsonLoader: raceId mismatch. JSON={data.raceId}, expected={expectedRaceId}");
         }
 
-        // Apply optional video offset
         if (data.moments != null)
         {
             foreach (var m in data.moments)
@@ -57,7 +54,6 @@ public class StoryMomentJsonLoader : MonoBehaviour
             }
         }
 
-        // Feed the controller list
         target.moments = data.moments ?? new List<StoryMoment>();
         Debug.Log($"StoryMomentJsonLoader: loaded {target.moments.Count} story moments for raceId '{data.raceId}'.");
     }

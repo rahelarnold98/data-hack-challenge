@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 561bddaec9d394e789c84fc351cd6adb, type: 3}
+  m_Name: Athlete_1
+  m_EditorClassIdentifier: Assembly-CSharp::AthleteData
+  id: 1
+  displayName: "Roberts Kr\u016Bzbergs "
+  country: LAT
+  flagSprite: {fileID: 21300000, guid: e3b34d22b4ff34b0ba0453518b3f06c0, type: 3}
+  photo: {fileID: 21300000, guid: 79944d193d6584378b9ad2b8b58d714c, type: 3}
+  birthYear: 2001
+  birthMonth: 4
+  birthDay: 18
+  instagramUrl: https://www.instagram.com/roberts_kruzbergs/?hl=en
+  isuUrl: https://isu-skating.com/short-track/skaters/roberts-kruzbergs/
+  olympicsUrl: https://www.olympics.com/en/athletes/roberts-kruzbergs
