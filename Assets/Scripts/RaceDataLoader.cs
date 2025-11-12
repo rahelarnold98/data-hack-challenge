@@ -288,7 +288,7 @@ public class RaceDataLoader : MonoBehaviour
     }
     
     
-    private void Update()
+    /*private void Update()
     {
         // Press Right/Left Arrow to switch laps during Play Mode
         if (Input.GetKeyDown(KeyCode.RightArrow)) currentLapNumber++;
@@ -307,6 +307,6 @@ public class RaceDataLoader : MonoBehaviour
             var lapView = BuildLapLeaderboard(finalA, lapToShow, competitorById);
             overlayUI.ShowLapResults(lapToShow, totalLaps, lapView);
         }
-    }
+    }*/
 
 }

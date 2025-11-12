@@ -1,24 +1,36 @@
 {
   "raceId": "seoul-men500-finalA",
-  "videoOffset": 40.0,
+  "videoOffset": 40.5,
   "moments": [
     {
-      "title": "Explosive Start",
-      "description": "The five athletes start.",
-      "triggerTime": 1.0,
+      "title": "Blast from the Start",
+      "description": "Skaters explode off the starting line with Steven Dubois (CAN) and Roberts Krūzbergs (LAT) leading the initial charge.",
+      "triggerTime": 0,
       "duration": 4.0
     },
     {
-      "title": "Fall of Athletes",
-      "description": "XXX falls down.",
-      "triggerTime": 6.0,
-      "duration": 4.0
+      "title": "Japanese Tumble Shakes Up the Race",
+      "description": "Shogo Miyata (JPN) loses balance and crashes during the first turn, reducing the field to four competitors.",
+      "triggerTime": 4.5,
+      "duration": 10.0
     },
     {
-      "title": "Final Sprint to Gold",
-      "description": "The winner....",
-      "triggerTime": 50.0,
-      "duration": 5.0
+      "title": "USA Skater Out of the Running",
+      "description": "Brandon Kim (USA) falls dramatically during the middle lap, eliminating him from contention and leaving three skaters.",
+      "triggerTime": 17.2,
+      "duration": 10.0
+    },
+    {
+      "title": "Dubois Sprints to Victory",
+      "description": "Steven Dubois (CAN) powers through the final straight to cross the finish line first, securing gold in the 500m final.",
+      "triggerTime": 42.0,
+      "duration": 3.0
+    },
+    {
+      "title": "Canadian Duo Celebrate 1-2 Finish",
+      "description": "Steven Dubois (CAN) and Jordan Pierre-Gilles (CAN) embrace and skate together in celebration after securing first and second place.",
+      "triggerTime": 44.5,
+      "duration": 10.0
     }
   ]
 }
