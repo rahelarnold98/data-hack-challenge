@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
+[DefaultExecutionOrder(-100)]
 public class RaceDataLoader : MonoBehaviour
 {
     [Header("Data")]
@@ -13,61 +14,23 @@ public class RaceDataLoader : MonoBehaviour
     [Header("UI")]
     public RaceOverlayUI overlayUI;
 
-    [Header("Live")]
-    [Tooltip("If < 0, automatically shows the latest common lap between all competitors.")]
+
     public int currentLapNumber = -1;
 
-    [Serializable]
-    public class Root
-    {
-        public Data Data;
-    }
+    public int TotalLaps { get; private set; } = 0;
+    public List<float> LapEndTimes { get; private set; } = new List<float>(); 
+    public int FastestLapNumber { get; private set; } = 1;
+    public string FastestLapLabel { get; private set; } = "";
 
-    [Serializable]
-    public class Data
-    {
-        public EventCompetitor[] Competitors;
-        public Round[] Rounds;
-    }
 
-    [Serializable]
-    public class EventCompetitor
-    {
-        public string Id;
-        public CompetitorDetail Competitor;
-        public int BibNumber;
-    }
-
-    [Serializable]
-    public class CompetitorDetail
-    {
-        public Person Person;
-        public string StartedForNfCode;
-    }
-
-    [Serializable]
-    public class Person
-    {
-        public string FirstName;
-        public string LastName;
-    }
-
-    [Serializable]
-    public class Round
-    {
-        public string Name;
-        public Heat[] Heats;
-    }
-
-    [Serializable]
-    public class Heat
-    {
-        public string Name;
-        public HeatCompetitor[] Competitors;
-    }
-
-    [Serializable]
-    public class HeatCompetitor
+    [Serializable] public class Root { public Data Data; }
+    [Serializable] public class Data { public EventCompetitor[] Competitors; public Round[] Rounds; }
+    [Serializable] public class EventCompetitor { public string Id; public CompetitorDetail Competitor; public int BibNumber; }
+    [Serializable] public class CompetitorDetail { public Person Person; public string StartedForNfCode; }
+    [Serializable] public class Person { public string FirstName; public string LastName; }
+    [Serializable] public class Round { public string Name; public Heat[] Heats; }
+    [Serializable] public class Heat { public string Name; public HeatCompetitor[] Competitors; }
+    [Serializable] public class HeatCompetitor
     {
         public string CompetitionCompetitorId;
         public int BibNumber;
@@ -76,71 +39,111 @@ public class RaceDataLoader : MonoBehaviour
         public string ResultStatus;
         public Lap[] Laps;
     }
-
-    [Serializable]
-    public class Lap
+    [Serializable] public class Lap
     {
-        public string LapNumber;
-        public int Rank;
-        public string LapTime;
-        public string Time;
-        public string ResultDiff;
+        public string LapNumber;  
+        public int Rank;           
+        public string LapTime;     
+        public string Time;        
+        public string ResultDiff;  
     }
+
+    private Root root;
+    private Heat finalA;
+    private Dictionary<string, EventCompetitor> competitorById;
 
     private void Start()
     {
-        if (jsonFile == null)
-        {
-            Debug.LogError("RaceDataLoader: jsonFile not assigned!");
-            return;
-        }
+        if (jsonFile == null) { Debug.LogError("RaceDataLoader: jsonFile not assigned!"); return; }
+        if (overlayUI == null) { Debug.LogError("RaceDataLoader: overlayUI not assigned!"); return; }
 
-        if (overlayUI == null)
-        {
-            Debug.LogError("RaceDataLoader: overlayUI not assigned!");
-            return;
-        }
-
-        var root = JsonUtility.FromJson<Root>(jsonFile.text);
+        root = JsonUtility.FromJson<Root>(jsonFile.text);
 
         var finalsRound = root.Data.Rounds.FirstOrDefault(r => r.Name == "Finals");
-        if (finalsRound == null)
+        if (finalsRound == null) { Debug.LogError("No 'Finals' round found in JSON."); return; }
+
+        finalA = finalsRound.Heats.FirstOrDefault(h => h.Name.Contains("Final"));
+        if (finalA == null) { Debug.LogError("No 'Final A' heat found in Finals."); return; }
+
+        competitorById = root.Data.Competitors.ToDictionary(c => c.Id, c => c);
+
+        TotalLaps = GetTotalLaps(finalA);
+        LapEndTimes = BuildLapTimelineSeconds(finalA); 
+        
+        int autoLapToShow = (currentLapNumber > 0) ? currentLapNumber : GetLatestCommonLap(finalA);
+        if (autoLapToShow > 0)
         {
-            Debug.LogError("No 'Finals' round found in JSON.");
-            return;
-        }
-
-        var finalA = finalsRound.Heats.FirstOrDefault(h => h.Name.Contains("Final"));
-        if (finalA == null)
-        {
-            Debug.LogError("No 'Final A' heat found in Finals.");
-            return;
-        }
-
-        var competitorById = root.Data.Competitors.ToDictionary(c => c.Id, c => c);
-
-        int lapToShow = currentLapNumber > 0 ? currentLapNumber : GetLatestCommonLap(finalA);
-        int totalLaps = finalA.Competitors.Max(c => c.Laps?.Length ?? 0);
-
-        if (lapToShow > 0)
-        {
-            var lapView = BuildLapLeaderboard(finalA, lapToShow, competitorById);
-            overlayUI.ShowLapResults(lapToShow, totalLaps, lapView);
+            var lapView = BuildLapLeaderboard(finalA, autoLapToShow, competitorById);
+            overlayUI.ShowLapResults(autoLapToShow, TotalLaps, lapView, "Men 500 m – Final A");
         }
         else
         {
-            Debug.LogWarning("Could not determine a common lap — showing final results instead.");
             ShowFinals(finalA, competitorById);
         }
 
         ShowFastestLap(finalA, competitorById);
     }
 
-    
-    private void ShowFinals(Heat finalA, Dictionary<string, EventCompetitor> competitorById)
+
+    public void RenderForLiveLap(int liveLap)
+    {
+        if (liveLap < 0)
+        {
+            int lapToShow = GetLatestCommonLap(finalA);
+            if (lapToShow > 0)
+            {
+                var lapView = BuildLapLeaderboard(finalA, lapToShow, competitorById);
+                overlayUI.ShowLapResults(lapToShow, TotalLaps, lapView, "Men 500 m – Final A");
+            }
+            else
+            {
+                ShowFinals(finalA, competitorById);
+            }
+            return;
+        }
+
+        if (liveLap <= 1)
+        {
+            var people = BuildEntrantsList(finalA, competitorById);
+            overlayUI.ShowNamesOnly(people, "Men 500 m – Final A", lapNumber: 1, totalLaps: TotalLaps);
+        }
+        else if (liveLap >= 2 && liveLap <= TotalLaps)
+        {
+            int lapToShow = liveLap - 1;
+            var lapView = BuildLapLeaderboard(finalA, lapToShow, competitorById);
+            overlayUI.ShowLapResults(lapToShow, TotalLaps, lapView, "Men 500 m – Final A");
+        }
+        else
+        {
+            ShowFinals(finalA, competitorById);
+        }
+    }
+
+    private List<RaceCompetitorView> BuildEntrantsList(Heat heat, Dictionary<string, EventCompetitor> byId)
+    {
+        var list = new List<RaceCompetitorView>();
+        foreach (var c in heat.Competitors.OrderBy(x => x.BibNumber))
+        {
+            if (byId.TryGetValue(c.CompetitionCompetitorId, out var ec))
+            {
+                list.Add(new RaceCompetitorView
+                {
+                    name = $"{ec.Competitor.Person.FirstName} {ec.Competitor.Person.LastName}",
+                    country = ec.Competitor.StartedForNfCode
+                });
+            }
+            else
+            {
+                list.Add(new RaceCompetitorView { name = $"Bib {c.BibNumber}", country = "" });
+            }
+        }
+        return list;
+    }
+
+    private void ShowFinals(Heat heat, Dictionary<string, EventCompetitor> byId)
     {
         var viewList = new List<RaceCompetitorView>();
-        foreach (var c in finalA.Competitors)
+        foreach (var c in heat.Competitors)
         {
             var view = new RaceCompetitorView
             {
@@ -148,7 +151,7 @@ public class RaceDataLoader : MonoBehaviour
                 finalTime = c.FinalResult
             };
 
-            if (competitorById.TryGetValue(c.CompetitionCompetitorId, out var ec))
+            if (byId.TryGetValue(c.CompetitionCompetitorId, out var ec))
             {
                 var p = ec.Competitor.Person;
                 view.name = $"{p.FirstName} {p.LastName}";
@@ -163,14 +166,11 @@ public class RaceDataLoader : MonoBehaviour
         }
 
         viewList = viewList.OrderBy(v => v.finalRank).ToList();
-        overlayUI.ShowFinalResults(viewList);
+        overlayUI.ShowFinalResults(viewList, "Men 500 m – Final A");
+
     }
 
-   
-    private List<RaceCompetitorView> BuildLapLeaderboard(
-        Heat heat,
-        int lapNumber,
-        Dictionary<string, EventCompetitor> competitorById)
+    private List<RaceCompetitorView> BuildLapLeaderboard(Heat heat, int lapNumber, Dictionary<string, EventCompetitor> byId)
     {
         var list = new List<RaceCompetitorView>();
 
@@ -186,7 +186,7 @@ public class RaceDataLoader : MonoBehaviour
             });
 
             string name, country;
-            if (competitorById.TryGetValue(c.CompetitionCompetitorId, out var ec))
+            if (byId.TryGetValue(c.CompetitionCompetitorId, out var ec))
             {
                 name = $"{ec.Competitor.Person.FirstName} {ec.Competitor.Person.LastName}";
                 country = ec.Competitor.StartedForNfCode;
@@ -217,7 +217,6 @@ public class RaceDataLoader : MonoBehaviour
             .ToList();
     }
 
-    
     private int GetLatestCommonLap(Heat heat)
     {
         var perCompetitorSets = heat.Competitors
@@ -226,7 +225,6 @@ public class RaceDataLoader : MonoBehaviour
                 {
                     if (int.TryParse(l.LapNumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n))
                         return n;
-
                     var m = Regex.Match(l.LapNumber ?? "", @"\d+");
                     return m.Success ? int.Parse(m.Value) : -1;
                 })
@@ -234,18 +232,153 @@ public class RaceDataLoader : MonoBehaviour
                 .ToHashSet() ?? new HashSet<int>())
             .ToList();
 
-        if (perCompetitorSets.Count == 0)
-            return -1;
+        if (perCompetitorSets.Count == 0) return -1;
 
         var common = new HashSet<int>(perCompetitorSets[0]);
-        foreach (var s in perCompetitorSets.Skip(1))
-            common.IntersectWith(s);
+        foreach (var s in perCompetitorSets.Skip(1)) common.IntersectWith(s);
 
         return common.Count > 0 ? common.Max() : -1;
     }
+
+    private int GetTotalLaps(Heat heat)
+    {
+        return heat.Competitors.Max(c => c.Laps?.Select(l =>
+        {
+            if (int.TryParse(l.LapNumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n)) return n;
+            var m = Regex.Match(l.LapNumber ?? "", @"\d+");
+            return m.Success ? int.Parse(m.Value) : 0;
+        }).DefaultIfEmpty(0).Max() ?? 0);
+    }
     
-    
-    private void ShowFastestLap(Heat heat, Dictionary<string, EventCompetitor> competitorById)
+
+private List<float> BuildLapTimelineSeconds(Heat heat)
+{
+    var result = new List<float>();
+    if (heat?.Competitors == null || heat.Competitors.Length == 0) return result;
+
+    var perCompLapCum = new List<Dictionary<int, float>>();
+    var perCompLapRank = new List<Dictionary<int, int>>();
+
+    foreach (var c in heat.Competitors)
+    {
+        var map = new Dictionary<int, float>();
+        var ranks = new Dictionary<int, int>();
+        if (c?.Laps == null || c.Laps.Length == 0)
+        {
+            perCompLapCum.Add(map);
+            perCompLapRank.Add(ranks);
+            continue;
+        }
+
+        float cum = 0f;
+        foreach (var l in c.Laps.OrderBy(LapNumberAsInt))
+        {
+            int n = LapNumberAsInt(l);
+            if (n <= 0) continue;
+
+            float tCum = ParseTimeSeconds(l.Time);
+            if (tCum > 0f)
+            {
+                cum = tCum;
+            }
+            else
+            {
+                cum += ParseTimeSeconds(l.LapTime);
+            }
+
+            if (!map.ContainsKey(n)) map[n] = cum;
+            if (!ranks.ContainsKey(n)) ranks[n] = l.Rank;
+        }
+        perCompLapCum.Add(map);
+        perCompLapRank.Add(ranks);
+    }
+
+    float last = 0f;
+    for (int lap = 1; lap <= TotalLaps; lap++)
+    {
+        float chosen = 0f;
+
+        float leaderTime = 0f;
+        bool haveLeader = false;
+        for (int i = 0; i < perCompLapCum.Count; i++)
+        {
+            if (perCompLapRank[i].TryGetValue(lap, out int rank) && rank == 1 &&
+                perCompLapCum[i].TryGetValue(lap, out float t))
+            {
+                leaderTime = t;
+                haveLeader = true;
+                break;
+            }
+        }
+
+        if (haveLeader)
+        {
+            chosen = leaderTime;
+        }
+        else
+        {
+            var times = new List<float>();
+            foreach (var map in perCompLapCum)
+                if (map.TryGetValue(lap, out float t) && t > 0f)
+                    times.Add(t);
+
+            if (times.Count > 0)
+            {
+                times.Sort();
+                int mid = times.Count / 2;
+                chosen = (times.Count % 2 == 1) ? times[mid] : 0.5f * (times[mid - 1] + times[mid]);
+            }
+        }
+
+        if (chosen <= last) chosen = last + 0.001f;
+
+        result.Add(chosen);
+        last = chosen;
+    }
+
+    return result;
+}
+
+
+    private static int LapNumberAsInt(Lap l)
+    {
+        if (int.TryParse(l.LapNumber, out var n)) return n;
+        var m = Regex.Match(l.LapNumber ?? "", @"\d+");
+        return m.Success ? int.Parse(m.Value) : 0;
+    }
+
+    private static float MaxCumulativeSeconds(HeatCompetitor c)
+    {
+        if (c.Laps == null) return 0f;
+        float max = 0f, cumBySum = 0f;
+        foreach (var l in c.Laps)
+        {
+            float cumulative = ParseTimeSeconds(l.Time);
+            if (cumulative > 0f) max = Mathf.Max(max, cumulative);
+            cumBySum += ParseTimeSeconds(l.LapTime);
+        }
+        return Mathf.Max(max, cumBySum);
+    }
+
+    public static float ParseTimeSeconds(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return 0f;
+        s = s.Trim();
+
+        var parts = s.Split(':');
+        if (parts.Length == 2 && float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var sec) &&
+            int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var min))
+        {
+            return min * 60f + sec;
+        }
+
+        if (float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var onlySec))
+            return onlySec;
+
+        return 0f;
+    }
+
+    private void ShowFastestLap(Heat heat, Dictionary<string, EventCompetitor> byId)
     {
         RaceCompetitorView fastestLapCompetitor = null;
         string fastestLapNumber = "";
@@ -253,7 +386,7 @@ public class RaceDataLoader : MonoBehaviour
 
         foreach (var c in heat.Competitors)
         {
-            competitorById.TryGetValue(c.CompetitionCompetitorId, out var ec);
+            byId.TryGetValue(c.CompetitionCompetitorId, out var ec);
 
             string fullName = ec != null
                 ? $"{ec.Competitor.Person.FirstName} {ec.Competitor.Person.LastName}"
@@ -286,27 +419,4 @@ public class RaceDataLoader : MonoBehaviour
             overlayUI.ShowFastestLap(label);
         }
     }
-    
-    
-    /*private void Update()
-    {
-        // Press Right/Left Arrow to switch laps during Play Mode
-        if (Input.GetKeyDown(KeyCode.RightArrow)) currentLapNumber++;
-        if (Input.GetKeyDown(KeyCode.LeftArrow)) currentLapNumber = Mathf.Max(1, currentLapNumber - 1);
-
-        // Rebuild if you changed currentLapNumber manually
-        if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            var root = JsonUtility.FromJson<Root>(jsonFile.text);
-            var finalsRound = root.Data.Rounds.First(r => r.Name == "Finals");
-            var finalA = finalsRound.Heats.First(h => h.Name.Contains("Final"));
-            var competitorById = root.Data.Competitors.ToDictionary(c => c.Id, c => c);
-
-            int totalLaps = finalA.Competitors.Max(c => c.Laps?.Length ?? 0);
-            int lapToShow = Mathf.Clamp(currentLapNumber, 1, Mathf.Max(1, totalLaps));
-            var lapView = BuildLapLeaderboard(finalA, lapToShow, competitorById);
-            overlayUI.ShowLapResults(lapToShow, totalLaps, lapView);
-        }
-    }*/
-
 }
