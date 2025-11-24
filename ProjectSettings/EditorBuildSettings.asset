@@ -17,6 +17,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/AthletesScene.unity
     guid: 14e1b560f5b7d4ffb8684eea4e4b7db5
+  - enabled: 1
+    path: Assets/Scenes/ImmersiveRaceScene.unity
+    guid: d25762ad5491b4264adc2869a2373dd1
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: 59db84252a9ec4cb784c1f99e3baee7c, type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 2ecd00a9871324338ad5c34237504400, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: bbd44a2bebe174f64bbc298d98b38445, type: 2}
   m_UseUCBPForAssetBundles: 0
