@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
+
 
 public class RaceManager : MonoBehaviour
 {
@@ -13,7 +15,16 @@ public class RaceManager : MonoBehaviour
     public SkaterEntry[] skaters;
     public Transform xrRig;
     public int playerIndex = 0;
+    public CameraManager cameraManager;
 
+    private List<Transform> skaterTransforms = new List<Transform>();
+
+    public Transform GetSkaterTransform(int index)
+    {
+        return skaterTransforms[index];
+    }
+
+    
     void Start()
     {
         if (xrRig == null)
@@ -41,11 +52,18 @@ public class RaceManager : MonoBehaviour
             var data = CSVLoader.LoadTimedPositions(entry.csvFile);
             replay.Init(data);
 
-            // Attach XR rig to chosen skater
+            // Store skater transform for the camera system
+            skaterTransforms.Add(obj.transform);
+
+            // Attach XR rig + set first-person view
             if (i == playerIndex)
+            {
                 StartCoroutine(AttachRig(obj.transform));
+                cameraManager.SetFirstPerson(obj.transform);
+            }
         }
     }
+
 
     private System.Collections.IEnumerator AttachRig(Transform skater)
     {
