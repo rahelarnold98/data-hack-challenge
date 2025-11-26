@@ -45,8 +45,10 @@ public class RaceManager : MonoBehaviour
 
             // Spawn skater
             GameObject obj = Instantiate(entry.skaterPrefab);
-            obj.name = entry.skaterName;
+            obj.transform.position = new Vector3(0, 1, 0);
 
+            obj.name = entry.skaterName;
+            
             // Replay controller
             var replay = obj.AddComponent<SkaterReplay>();
             var data = CSVLoader.LoadTimedPositions(entry.csvFile);

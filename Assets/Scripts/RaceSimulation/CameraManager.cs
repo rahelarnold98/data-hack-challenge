@@ -31,14 +31,20 @@ public class CameraManager : MonoBehaviour
 
     void LateUpdate()
     {
-        if (thirdPersonCamera.enabled && currentTarget != null)
-        {
-            Vector3 desiredPos = currentTarget.position
-                                 - currentTarget.forward * followDistance
-                                 + Vector3.up * followHeight;
+        if (!thirdPersonCamera.enabled || currentTarget == null)
+            return;
 
-            thirdPersonCamera.transform.position = desiredPos;
-            thirdPersonCamera.transform.LookAt(currentTarget);
-        }
+        // Use the target forward (already updated from the replay script)
+        Vector3 forward = currentTarget.forward;
+        
+        Vector3 desiredPos =
+            currentTarget.position
+            - forward * followDistance
+            + Vector3.up * followHeight;
+
+        thirdPersonCamera.transform.position = desiredPos;
+        thirdPersonCamera.transform.rotation =
+            Quaternion.LookRotation(currentTarget.position - desiredPos, Vector3.up);
     }
+
 }

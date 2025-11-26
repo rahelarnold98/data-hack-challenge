@@ -7,8 +7,12 @@ public class SkaterReplay : MonoBehaviour
 
     private float raceTime = 0f;
     private int currentIndex = 0;
+    
+    public float heightOffset = 1.0f;
+
 
     public Vector2 trackCenter = new Vector2(42.92f, 27.24f);
+    
 
     public void Init(List<CSVLoader.TimedPoint> data)
     {
@@ -61,7 +65,6 @@ public class SkaterReplay : MonoBehaviour
 
         raceTime += Time.deltaTime;
 
-        // Advance the current index based on elapsed time
         while (currentIndex < points.Count - 2 &&
                raceTime > points[currentIndex + 1].time)
         {
@@ -71,16 +74,18 @@ public class SkaterReplay : MonoBehaviour
         var a = points[currentIndex];
         var b = points[currentIndex + 1];
 
-        // Get interpolation fraction between timestamps
         float t = Mathf.InverseLerp(a.time, b.time, raceTime);
 
-        // Position using Catmull-Rom
         Vector3 newPos = SmoothInterp(currentIndex, t);
+
+        // 👉 FIX: Keep skater above ground
+        newPos.y = heightOffset;
+
         transform.position = newPos;
 
-        // Predict next position slightly ahead on spline
         float tAhead = Mathf.Clamp01(t + 0.05f);
         Vector3 futurePos = SmoothInterp(currentIndex, tAhead);
+        futurePos.y = heightOffset;   // also keep look target above ground
 
         Vector3 dir = (futurePos - newPos).normalized;
         if (dir.sqrMagnitude > 0.0001f)
@@ -89,4 +94,5 @@ public class SkaterReplay : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 8f);
         }
     }
+
 }
