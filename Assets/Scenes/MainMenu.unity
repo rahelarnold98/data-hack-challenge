@@ -984,6 +984,7 @@ MonoBehaviour:
   raceSceneName: RaceVideoScene
   athletesSceneName: AthletesScene
   immersiveSceneName: ImmersiveRaceScene
+  mainSceneName: MainMenu
 --- !u!4 &999130274
 Transform:
   m_ObjectHideFlags: 0
@@ -1878,7 +1879,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 999130273}
         m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
-        m_MethodName: StartAthletes
+        m_MethodName: StartRace
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

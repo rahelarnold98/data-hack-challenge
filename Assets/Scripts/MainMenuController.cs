@@ -7,6 +7,7 @@ public class MainMenuController : MonoBehaviour
     public string raceSceneName = "RaceVideoScene";
     public string athletesSceneName = "AthletesScene";
     public string immersiveSceneName = "ImmersiveRaceScene";
+    public string mainSceneName = "MainMenu";
 
     public void StartRace()
     {
@@ -21,6 +22,11 @@ public class MainMenuController : MonoBehaviour
     public void StartImmersive()
     {
         SceneManager.LoadScene(immersiveSceneName);
+    }
+    
+    public void BackToMain()
+    {
+        SceneManager.LoadScene(mainSceneName);
     }
 
 
