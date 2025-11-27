@@ -1,31 +1,20 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class RaceManager : MonoBehaviour
 {
-    [System.Serializable]
-    public class SkaterEntry
-    {
-        public string skaterName;
-        public TextAsset csvFile;
-        public GameObject skaterPrefab;
-    }
-
     public SkaterEntry[] skaters;
     public Transform xrRig;
-    public int playerIndex = 0;
+    public int playerIndex;
     public CameraManager cameraManager;
 
-    private List<Transform> skaterTransforms = new List<Transform>();
+    private readonly List<Transform> skaterTransforms = new();
 
-    public Transform GetSkaterTransform(int index)
-    {
-        return skaterTransforms[index];
-    }
+    public int SkaterCount => skaterTransforms.Count;
 
-    
-    void Start()
+    private void Start()
     {
         if (xrRig == null)
         {
@@ -33,9 +22,9 @@ public class RaceManager : MonoBehaviour
             return;
         }
 
-        for (int i = 0; i < skaters.Length; i++)
+        for (var i = 0; i < skaters.Length; i++)
         {
-            SkaterEntry entry = skaters[i];
+            var entry = skaters[i];
 
             if (entry.csvFile == null || entry.skaterPrefab == null)
             {
@@ -44,11 +33,15 @@ public class RaceManager : MonoBehaviour
             }
 
             // Spawn skater
-            GameObject obj = Instantiate(entry.skaterPrefab);
+            var obj = Instantiate(entry.skaterPrefab);
             obj.transform.position = new Vector3(0, 1, 0);
 
+            var renderer = obj.GetComponentInChildren<MeshRenderer>();
+            if (renderer != null && entry.skaterMaterial != null)
+                renderer.material = entry.skaterMaterial;
+
             obj.name = entry.skaterName;
-            
+
             // Replay controller
             var replay = obj.AddComponent<SkaterReplay>();
             var data = CSVLoader.LoadTimedPositions(entry.csvFile);
@@ -66,13 +59,27 @@ public class RaceManager : MonoBehaviour
         }
     }
 
+    public Transform GetSkaterTransform(int index)
+    {
+        return skaterTransforms[index];
+    }
 
-    private System.Collections.IEnumerator AttachRig(Transform skater)
+
+    private IEnumerator AttachRig(Transform skater)
     {
         yield return null; // Wait one frame
 
         xrRig.SetParent(skater);
-        xrRig.localPosition = new Vector3(0, 1.7f, 0); // "head height"
+        xrRig.localPosition = new Vector3(0, 0f, 0); // "head height"
         xrRig.localRotation = Quaternion.identity;
+    }
+
+    [Serializable]
+    public class SkaterEntry
+    {
+        public string skaterName;
+        public TextAsset csvFile;
+        public GameObject skaterPrefab;
+        public Material skaterMaterial;
     }
 }

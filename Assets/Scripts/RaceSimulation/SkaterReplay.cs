@@ -3,26 +3,69 @@ using UnityEngine;
 
 public class SkaterReplay : MonoBehaviour
 {
-    public List<CSVLoader.TimedPoint> points;
-
-    private float raceTime = 0f;
-    private int currentIndex = 0;
-    
     public float heightOffset = 1.0f;
 
 
-    public Vector2 trackCenter = new Vector2(42.92f, 27.24f);
-    
+    public Vector2 trackCenter = new(42.92f, 27.24f);
+    private int currentIndex;
+    public List<CSVLoader.TimedPoint> points;
+
+    private float raceTime;
+
+    private void Update()
+    {
+        if (points == null || points.Count < 2)
+            return;
+
+        raceTime += Time.deltaTime;
+
+        while (currentIndex < points.Count - 2 &&
+               raceTime > points[currentIndex + 1].time)
+            currentIndex++;
+
+        var a = points[currentIndex];
+        var b = points[currentIndex + 1];
+
+        var t = Mathf.InverseLerp(a.time, b.time, raceTime);
+
+        var newPos = SmoothInterp(currentIndex, t);
+
+        // Fallback: if data is invalid (0,0), place skater at track center
+        if (Mathf.Approximately(newPos.x, 0f) && Mathf.Approximately(newPos.z, 0f))
+            newPos = new Vector3(trackCenter.x, heightOffset, trackCenter.y);
+
+        newPos.y = heightOffset;
+
+        transform.position = newPos;
+
+        // Predict future position for smooth forward rotation
+        var tAhead = Mathf.Clamp01(t + 0.05f);
+        var futurePos = SmoothInterp(currentIndex, tAhead);
+
+        // Apply same fallback for future direction vector
+        if (Mathf.Approximately(futurePos.x, 0f) && Mathf.Approximately(futurePos.z, 0f))
+            futurePos = new Vector3(trackCenter.x, heightOffset, trackCenter.y);
+
+        futurePos.y = heightOffset;
+
+        var dir = (futurePos - newPos).normalized;
+        if (dir.sqrMagnitude > 0.0001f)
+        {
+            var targetRot = Quaternion.LookRotation(dir, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 8f);
+        }
+    }
+
 
     public void Init(List<CSVLoader.TimedPoint> data)
     {
         points = new List<CSVLoader.TimedPoint>(data);
 
         // Mirror around track center on X axis
-        for (int i = 0; i < points.Count; i++)
+        for (var i = 0; i < points.Count; i++)
         {
-            var p = points[i];        
-            Vector3 pos = p.pos;
+            var p = points[i];
+            var pos = p.pos;
             pos.x = 2f * trackCenter.x - pos.x;
 
             p.pos = pos;
@@ -36,63 +79,25 @@ public class SkaterReplay : MonoBehaviour
             transform.position = points[0].pos;
     }
 
-    Vector3 SmoothInterp(int index, float t)
+    private Vector3 SmoothInterp(int index, float t)
     {
         // Clamp indices
-        int i0 = Mathf.Max(index - 1, 0);
-        int i1 = index;
-        int i2 = index + 1;
-        int i3 = Mathf.Min(index + 2, points.Count - 1);
+        var i0 = Mathf.Max(index - 1, 0);
+        var i1 = index;
+        var i2 = index + 1;
+        var i3 = Mathf.Min(index + 2, points.Count - 1);
 
-        Vector3 p0 = points[i0].pos;
-        Vector3 p1 = points[i1].pos;
-        Vector3 p2 = points[i2].pos;
-        Vector3 p3 = points[i3].pos;
+        var p0 = points[i0].pos;
+        var p1 = points[i1].pos;
+        var p2 = points[i2].pos;
+        var p3 = points[i3].pos;
 
         // Catmull-Rom spline
         return 0.5f * (
-            (2f * p1) +
+            2f * p1 +
             (-p0 + p2) * t +
             (2f * p0 - 5f * p1 + 4f * p2 - p3) * (t * t) +
             (-p0 + 3f * p1 - 3f * p2 + p3) * (t * t * t)
         );
     }
-
-    void Update()
-    {
-        if (points == null || points.Count < 2)
-            return;
-
-        raceTime += Time.deltaTime;
-
-        while (currentIndex < points.Count - 2 &&
-               raceTime > points[currentIndex + 1].time)
-        {
-            currentIndex++;
-        }
-
-        var a = points[currentIndex];
-        var b = points[currentIndex + 1];
-
-        float t = Mathf.InverseLerp(a.time, b.time, raceTime);
-
-        Vector3 newPos = SmoothInterp(currentIndex, t);
-
-        // 👉 FIX: Keep skater above ground
-        newPos.y = heightOffset;
-
-        transform.position = newPos;
-
-        float tAhead = Mathf.Clamp01(t + 0.05f);
-        Vector3 futurePos = SmoothInterp(currentIndex, tAhead);
-        futurePos.y = heightOffset;   // also keep look target above ground
-
-        Vector3 dir = (futurePos - newPos).normalized;
-        if (dir.sqrMagnitude > 0.0001f)
-        {
-            Quaternion targetRot = Quaternion.LookRotation(dir, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 8f);
-        }
-    }
-
 }

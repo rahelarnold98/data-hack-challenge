@@ -1,0 +1,5 @@
+/Users/rahelarnold/Desktop/data-hack-challenge/.utmp/RelWithDebInfo/71353g47/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/rahelarnold/Desktop/data-hack-challenge/.utmp/RelWithDebInfo/71353g47/arm64-v8a/CMakeFiles/rebuild_cache.dir
+/Users/rahelarnold/Desktop/data-hack-challenge/.utmp/RelWithDebInfo/71353g47/arm64-v8a/GameActivity/CMakeFiles/game.dir
+/Users/rahelarnold/Desktop/data-hack-challenge/.utmp/RelWithDebInfo/71353g47/arm64-v8a/GameActivity/CMakeFiles/edit_cache.dir
+/Users/rahelarnold/Desktop/data-hack-challenge/.utmp/RelWithDebInfo/71353g47/arm64-v8a/GameActivity/CMakeFiles/rebuild_cache.dir
